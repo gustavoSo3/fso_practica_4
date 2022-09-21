@@ -1,6 +1,6 @@
 #include <scheduler.h>
 
-#define MAX_QUEUES
+#define MAX_QUEUES 20
 
 extern THANDLER threads[MAXTHREAD];
 extern int currthread;
@@ -23,15 +23,18 @@ void scheduler(int arguments)
 
 	if (event == TIMER)
 	{
-		pritf(">> Este es mi print: $d\n", ready[0].head);
-		q_count++;
-		if (q_count == 2)
+
+		if (current_priority < MAX_QUEUES - 1)
 		{
-			threads[callingthread].status = READY;
-			_enqueue(&ready, callingthread);
-			changethread = 1;
-			q_count = 0;
+			_enqueue(&ready[current_priority + 1], callingthread);
 		}
+		else
+		{
+			_enqueue(&ready[current_priority], callingthread);
+		}
+
+		threads[callingthread].status = READY;
+		changethread = 1;
 	}
 
 	if (event == NEWTHREAD)
@@ -59,14 +62,20 @@ void scheduler(int arguments)
 	if (event == UNBLOCKTHREAD)
 	{
 		threads[callingthread].status = READY;
-		_enqueue(&ready, callingthread);
+		_enqueue(&ready[current_priority], callingthread);
 	}
 
 	if (changethread)
 	{
 		old = currthread;
-		next = _dequeue(&ready);
 
+		for (current_priority = 0; current_priority < MAX_QUEUES; current_priority++)
+		{
+			if (!_emptyq(&ready[current_priority]))
+				break;
+		}
+
+		next = _dequeue(&ready[current_priority]);
 		threads[next].status = RUNNING;
 		_swapthreads(old, next);
 	}

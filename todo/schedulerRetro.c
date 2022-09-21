@@ -23,6 +23,7 @@ void scheduler(int arguments)
 
 	if (event == TIMER)
 	{
+		pritf(">> Este es mi print: $d\n", ready[0].head);
 		q_count++;
 		if (q_count == 2)
 		{
